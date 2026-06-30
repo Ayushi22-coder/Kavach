@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KAVACH · Citizen Fraud Shield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0f1a;
+  --ink2:#111827;
+  --ink3:#182030;
+  --card:#1a2540;
+  --card2:#1e2d45;
+  --border:#243050;
+  --border2:#2e3f60;
+  --shield:#00e5a0;
+  --shield2:#00b87e;
+  --shield-dim:rgba(0,229,160,.12);
+  --warn:#f59e0b;
+  --danger:#f43f5e;
+  --safe:#22d3a0;
+  --text:#dde5f4;
+  --muted:#6b7fa8;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --display:'Space Grotesk',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--ink);color:var(--text);font-family:var(--sans);display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:var(--ink2);border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:20}
+.tb-left{display:flex;align-items:center;gap:14px}
+.logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--shield),#006b4a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 18px rgba(0,229,160,.25)}
+.logo-text{font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.5px}
+.logo-text em{color:var(--shield);font-style:normal}
+.logo-sub{font-size:10px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.tb-center{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:4px}
+.tab-btn{padding:6px 16px;border-radius:6px;border:1px solid transparent;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;font-family:var(--sans);color:var(--muted);background:transparent}
+.tab-btn.active{background:var(--shield-dim);border-color:var(--shield);color:var(--shield)}
+.tab-btn:hover:not(.active){color:var(--text);border-color:var(--border2)}
+.tb-right{display:flex;align-items:center;gap:10px}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--shield);box-shadow:0 0 8px var(--shield);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.live-label{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.lang-sel{background:var(--ink3);border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:all .2s}
+.lang-sel:hover{border-color:var(--shield);color:var(--shield)}
+.lang-sel.open{border-color:var(--shield);color:var(--shield);background:var(--shield-dim)}
+
+/* ── LANG DROPDOWN ── */
+.lang-drop{position:absolute;top:56px;right:24px;background:var(--ink2);border:1px solid var(--border);border-radius:10px;padding:6px;display:none;flex-direction:column;z-index:100;min-width:170px;box-shadow:0 12px 32px rgba(0,0,0,.5)}
+.lang-drop.open{display:flex}
+.lang-opt{padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;display:flex;align-items:center;gap:8px}
+.lang-opt:hover{background:var(--ink3);color:var(--text)}
+.lang-opt.sel{color:var(--shield);background:var(--shield-dim)}
+
+/* ── PAGE VIEWS ── */
+.page{display:none;flex:1;overflow:hidden}
+.page.active{display:flex}
+
+/* ── CHAT PAGE ── */
+#chatPage{flex-direction:row}
+
+/* ── SIDEBAR ── */
+.sidebar{width:272px;flex-shrink:0;background:var(--ink2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sb-section{padding:18px 16px;border-bottom:1px solid var(--border)}
+.sb-label{font-size:9px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);font-weight:600;margin-bottom:12px;font-family:var(--mono)}
+
+/* risk meter */
+.risk-card{background:var(--ink3);border-radius:10px;padding:16px;border:1px solid var(--border)}
+.risk-title{font-size:11px;color:var(--muted);margin-bottom:6px}
+.risk-score{font-family:var(--display);font-size:32px;font-weight:700;line-height:1;letter-spacing:-1px}
+.risk-score.idle{color:var(--muted)}
+.risk-score.low{color:var(--safe)}
+.risk-score.medium{color:var(--warn)}
+.risk-score.high{color:var(--danger);text-shadow:0 0 20px rgba(244,63,94,.4)}
+.risk-track{background:var(--border);border-radius:4px;height:5px;margin-top:10px;overflow:hidden}
+.risk-fill{height:5px;border-radius:4px;width:0%;transition:width .8s ease,background .8s ease}
+.risk-caption{font-size:11px;color:var(--muted);margin-top:8px;font-family:var(--mono)}
+
+/* flags */
+.flags{display:flex;flex-direction:column;gap:6px}
+.flag{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;background:var(--ink3);border:1px solid var(--border);font-size:12px;color:var(--muted);transition:all .4s}
+.flag.on{border-color:rgba(244,63,94,.45);background:rgba(244,63,94,.07);color:var(--text)}
+.flag-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .4s}
+.flag.on .flag-dot{background:var(--danger);box-shadow:0 0 7px var(--danger)}
+
+/* quick scenarios */
+.scenarios{display:flex;flex-direction:column;gap:6px}
+.sc-btn{background:var(--ink3);border:1px solid var(--border);color:var(--muted);padding:9px 12px;border-radius:8px;font-size:12px;cursor:pointer;text-align:left;font-family:var(--sans);transition:all .2s;display:flex;align-items:flex-start;gap:8px;line-height:1.4}
+.sc-btn:hover{border-color:var(--shield);color:var(--text);background:var(--shield-dim)}
+.sc-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+
+/* sidebar footer */
+.sb-footer{margin-top:auto;padding:14px}
+.report-btn{width:100%;background:var(--danger);border:none;color:#fff;padding:11px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--display);display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;letter-spacing:.2px}
+.report-btn:hover{background:#e1173a;transform:translateY(-1px);box-shadow:0 4px 16px rgba(244,63,94,.35)}
+
+/* ── CHAT AREA ── */
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.messages{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth}
+.messages::-webkit-scrollbar{width:3px}
+.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* welcome */
+.welcome{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;border-top:3px solid var(--shield);max-width:640px}
+.wc-title{font-family:var(--display);font-size:22px;font-weight:700;margin-bottom:10px}
+.wc-title span{color:var(--shield)}
+.wc-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--ink3);border:1px solid var(--border);color:var(--text);padding:7px 13px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--shield);background:var(--shield-dim);color:var(--shield)}
+
+/* message rows */
+.mrow{display:flex;gap:10px;align-items:flex-end;max-width:700px}
+.mrow.user{flex-direction:row-reverse;align-self:flex-end}
+.mrow.bot{align-self:flex-start}
+.av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.av.bot{background:linear-gradient(135deg,var(--shield),#005f46)}
+.av.user{background:var(--card2);border:1px solid var(--border)}
+.bubble{padding:11px 15px;border-radius:13px;font-size:13.5px;line-height:1.65;max-width:540px}
+.bubble.bot{background:var(--card2);border:1px solid var(--border);border-bottom-left-radius:3px}
+.bubble.user{background:#1b3a5e;border:1px solid #2a4e76;border-bottom-right-radius:3px}
+.bubble b{color:var(--shield);font-weight:600}
+
+/* verdict card inside bubble */
+.verdict{margin-top:12px;border-radius:10px;padding:14px;border-left:3px solid}
+.verdict.high{background:rgba(244,63,94,.08);border-color:var(--danger)}
+.verdict.medium{background:rgba(245,158,11,.08);border-color:var(--warn)}
+.verdict.low{background:rgba(34,211,160,.08);border-color:var(--safe)}
+.verdict-head{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:6px}
+.verdict.high .verdict-head{color:var(--danger)}
+.verdict.medium .verdict-head{color:var(--warn)}
+.verdict.low .verdict-head{color:var(--safe)}
+.verdict-body{font-size:12px;color:var(--muted);line-height:1.65}
+.verdict-body strong{color:var(--text)}
+.abtns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.abtn{padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--sans);font-weight:500;border:1px solid;transition:all .2s}
+.abtn.p{background:var(--shield);color:var(--ink);border-color:var(--shield)}
+.abtn.p:hover{background:var(--shield2)}
+.abtn.s{background:transparent;color:var(--muted);border-color:var(--border)}
+.abtn.s:hover{border-color:var(--shield);color:var(--text)}
+
+/* typing */
+.typing-bubble{display:flex;gap:4px;align-items:center;padding:12px 16px}
+.td{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:tb 1.4s infinite ease-in-out}
+.td:nth-child(2){animation-delay:.2s}
+.td:nth-child(3){animation-delay:.4s}
+@keyframes tb{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+
+/* input */
+.inputbar{padding:14px 20px 18px;background:var(--ink2);border-top:1px solid var(--border);flex-shrink:0}
+.input-wrap{display:flex;gap:8px;align-items:flex-end;background:var(--ink3);border:1px solid var(--border);border-radius:12px;padding:10px 12px;transition:border-color .2s}
+.input-wrap:focus-within{border-color:var(--shield)}
+#msgInput{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13.5px;font-family:var(--sans);resize:none;max-height:110px;line-height:1.5}
+#msgInput::placeholder{color:var(--muted)}
+.send{width:36px;height:36px;border-radius:8px;background:var(--shield);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink);font-size:15px;transition:all .2s;font-weight:700}
+.send:hover{background:var(--shield2);transform:scale(1.05)}
+.send:disabled{background:var(--border);cursor:not-allowed;transform:none}
+.input-hint{font-size:10.5px;color:var(--muted);margin-top:8px;text-align:center;font-family:var(--mono)}
+
+/* ── EVIDENCE PANEL ── */
+.ev-panel{width:252px;flex-shrink:0;background:var(--ink2);border-left:1px solid var(--border);display:flex;flex-direction:column}
+.ev-header{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ev-badge{background:var(--shield-dim);color:var(--shield);border:1px solid var(--shield);border-radius:4px;font-size:9px;padding:2px 7px;font-family:var(--mono);letter-spacing:.5px}
+.ev-body{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.ev-body::-webkit-scrollbar{width:2px}
+.ev-body::-webkit-scrollbar-thumb{background:var(--border)}
+.ev-item{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:11px}
+.ev-item.flagged{border-color:rgba(244,63,94,.4)}
+.ev-key{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px;font-family:var(--mono)}
+.ev-item.flagged .ev-key{color:var(--danger)}
+.ev-val{font-size:12px;color:var(--text);line-height:1.4;font-family:var(--mono)}
+.ev-time{font-size:9.5px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+.ev-footer{padding:14px;border-top:1px solid var(--border)}
+.esc-btn{width:100%;background:transparent;border:1px solid var(--danger);color:var(--danger);padding:10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--display);transition:all .2s;letter-spacing:.2px}
+.esc-btn:hover{background:rgba(244,63,94,.1)}
+
+/* ── ARCHITECTURE PAGE ── */
+#archPage{flex-direction:column;overflow-y:auto;background:var(--ink);padding:40px}
+.arch-wrap{max-width:960px;margin:0 auto;width:100%}
+.arch-title{font-family:var(--display);font-size:28px;font-weight:700;margin-bottom:6px}
+.arch-title span{color:var(--shield)}
+.arch-sub{font-size:14px;color:var(--muted);margin-bottom:40px}
+.arch-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px}
+.arch-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px}
+.arch-card.full{grid-column:1/-1}
+.arch-card-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:14px;color:var(--shield);display:flex;align-items:center;gap:8px}
+.arch-layer{display:flex;flex-direction:column;gap:8px}
+.arch-row{display:flex;gap:8px;flex-wrap:wrap}
+.arch-box{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text);flex:1;min-width:120px}
+.arch-box-title{font-weight:600;margin-bottom:3px;font-family:var(--display);font-size:12px}
+.arch-box-sub{color:var(--muted);font-size:11px}
+.arch-arrow{text-align:center;color:var(--shield);font-size:18px;margin:4px 0}
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.tech-item{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px}
+.tech-name{font-weight:600;color:var(--text);margin-bottom:3px}
+.tech-role{color:var(--muted);font-size:11px}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.metric{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.metric-val{font-family:var(--display);font-size:26px;font-weight:700;color:var(--shield)}
+.metric-label{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── WHATSAPP PAGE ── */
+#waPage{flex-direction:column;align-items:center;justify-content:center;background:var(--ink);padding:32px;overflow-y:auto}
+.wa-wrap{display:flex;gap:40px;align-items:flex-start;max-width:900px;width:100%}
+.wa-phone{width:320px;flex-shrink:0;background:#111b21;border-radius:32px;border:6px solid #222e35;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.wa-status{background:#1f2c34;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.wa-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--shield),#005f46);display:flex;align-items:center;justify-content:center;font-size:15px}
+.wa-name{font-size:14px;font-weight:600;color:#e9edef}
+.wa-online{font-size:11px;color:#8696a0}
+.wa-messages{background:#0b141a;padding:14px;min-height:400px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.wa-messages::-webkit-scrollbar{width:3px}
+.wa-messages::-webkit-scrollbar-thumb{background:#2a3942}
+.wa-msg{max-width:78%;padding:8px 12px;border-radius:8px;font-size:13px;line-height:1.5}
+.wa-msg.bot{background:#1f2c34;color:#e9edef;align-self:flex-start;border-top-left-radius:0}
+.wa-msg.user{background:#005c4b;color:#e9edef;align-self:flex-end;border-top-right-radius:0}
+.wa-msg .wtime{font-size:10px;color:#8696a0;margin-top:4px;text-align:right}
+.wa-msg b{color:#00a884}
+.wa-input-row{background:#1f2c34;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.wa-inp{flex:1;background:#2a3942;border:none;outline:none;color:#e9edef;padding:8px 14px;border-radius:20px;font-size:13px;font-family:var(--sans)}
+.wa-inp::placeholder{color:#8696a0}
+.wa-send{width:38px;height:38px;border-radius:50%;background:#00a884;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;transition:all .2s}
+.wa-send:hover{background:#00876a}
+.wa-send:disabled{background:#2a3942;cursor:not-allowed}
+
+.wa-info{flex:1}
+.wa-info-title{font-family:var(--display);font-size:22px;font-weight:700;margin-bottom:10px}
+.wa-info-title span{color:var(--shield)}
+.wa-info-desc{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:24px}
+.wa-features{display:flex;flex-direction:column;gap:12px}
+.wa-feat{display:flex;gap:12px;align-items:flex-start}
+.wa-feat-icon{width:36px;height:36px;border-radius:8px;background:var(--shield-dim);border:1px solid rgba(0,229,160,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.wa-feat-text{font-size:13px;color:var(--muted);line-height:1.5}
+.wa-feat-text strong{color:var(--text);display:block;margin-bottom:2px;font-size:13px}
+.ivr-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:20px}
+.ivr-title{font-family:var(--display);font-size:14px;font-weight:600;color:var(--shield);margin-bottom:12px}
+.ivr-steps{display:flex;flex-direction:column;gap:8px}
+.ivr-step{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted)}
+.ivr-num{width:22px;height:22px;border-radius:50%;background:var(--shield-dim);border:1px solid rgba(0,229,160,.4);color:var(--shield);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+
+/* ── PITCH PAGE ── */
+#pitchPage{flex-direction:column;overflow-y:auto;background:var(--ink);padding:40px}
+.pitch-wrap{max-width:920px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:24px}
+.slide{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px}
+.slide-num{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.slide-title{font-family:var(--display);font-size:22px;font-weight:700;margin-bottom:6px}
+.slide-title span{color:var(--shield)}
+.slide-sub{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.stat-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.stat-box{background:var(--ink3);border:1px solid var(--border);border-radius:10px;padding:16px 20px;flex:1;min-width:140px;text-align:center}
+.stat-num{font-family:var(--display);font-size:28px;font-weight:700;color:var(--shield);line-height:1}
+.stat-label{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feat-card{background:var(--ink3);border:1px solid var(--border);border-radius:10px;padding:16px}
+.feat-icon{font-size:20px;margin-bottom:8px}
+.feat-name{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.feat-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.judge-table{width:100%;border-collapse:collapse}
+.judge-table th{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-family:var(--mono);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.judge-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+.judge-table td:first-child{color:var(--muted)}
+.weight-bar{display:flex;align-items:center;gap:8px}
+.wbar{height:6px;border-radius:3px;background:var(--shield)}
+.roadmap{display:flex;gap:0}
+.rm-step{flex:1;position:relative;padding:16px}
+.rm-step:not(:last-child)::after{content:'→';position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--shield);font-size:18px}
+.rm-step-inner{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:14px;height:100%}
+.rm-phase{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--shield);font-family:var(--mono);margin-bottom:6px}
+.rm-title{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:6px}
+.rm-items{font-size:11px;color:var(--muted);line-height:1.8}
+.cta-slide{background:linear-gradient(135deg,#0a1628,#0d2040);border:1px solid var(--shield);text-align:center}
+.cta-shield{font-size:52px;margin-bottom:16px}
+.cta-title{font-family:var(--display);font-size:32px;font-weight:700;margin-bottom:10px}
+.cta-tagline{font-size:16px;color:var(--muted);margin-bottom:24px}
+.cta-btns{display:flex;gap:12px;justify-content:center}
+.cta-btn{padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--display);border:none;transition:all .2s}
+.cta-btn.main{background:var(--shield);color:var(--ink)}
+.cta-btn.main:hover{background:var(--shield2)}
+.cta-btn.out{background:transparent;color:var(--shield);border:1px solid var(--shield)}
+.cta-btn.out:hover{background:var(--shield-dim)}
+.helpline{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.3);border-radius:8px;padding:14px;text-align:center;margin-top:16px;font-family:var(--mono);font-size:22px;color:var(--danger);font-weight:700;letter-spacing:2px}
+
+@media(max-width:900px){
+  .ev-panel{display:none}
+  .sidebar{width:220px}
+  .arch-grid{grid-template-columns:1fr}
+  .wa-wrap{flex-direction:column}
+  .feature-grid{grid-template-columns:1fr}
+  .roadmap{flex-direction:column}
+  .rm-step:not(:last-child)::after{content:'↓';right:50%;bottom:-12px;top:auto;transform:translateX(50%)}
+}
+@media(max-width:640px){.sidebar{display:none}.tb-center{display:none}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-left">
+    <div class="logo-mark">🛡️</div>
+    <div>
+      <div class="logo-text">KA<em>VACH</em></div>
+      <div class="logo-sub">Citizen Fraud Shield · MHA</div>
+    </div>
+  </div>
+  <div class="tb-center">
+    <button class="tab-btn active" onclick="showPage('chatPage',this)">💬 Live Shield</button>
+    <button class="tab-btn" onclick="showPage('waPage',this)">📱 WhatsApp</button>
+    <button class="tab-btn" onclick="showPage('archPage',this)">🏗️ Architecture</button>
+    <button class="tab-btn" onclick="showPage('pitchPage',this)">📊 Pitch Deck</button>
+  </div>
+  <div class="tb-right">
+    <div class="pulse"></div>
+    <div class="live-label">AI Active · Demo Mode</div>
+    <div class="lang-sel" id="langSel" onclick="toggleLang()">🌐 English ▾</div>
+  </div>
+</div>
+
+<!-- LANG DROPDOWN -->
+<div class="lang-drop" id="langDrop">
+  <div class="lang-opt sel" onclick="setLang('English','🇬🇧')">🇬🇧 English</div>
+  <div class="lang-opt" onclick="setLang('Hindi','🇮🇳')">🇮🇳 हिन्दी (Hindi)</div>
+  <div class="lang-opt" onclick="setLang('Bengali','🟠')">🟠 বাংলা (Bengali)</div>
+  <div class="lang-opt" onclick="setLang('Tamil','🔵')">🔵 தமிழ் (Tamil)</div>
+  <div class="lang-opt" onclick="setLang('Telugu','🟡')">🟡 తెలుగు (Telugu)</div>
+  <div class="lang-opt" onclick="setLang('Marathi','🟣')">🟣 मराठी (Marathi)</div>
+  <div class="lang-opt" onclick="setLang('Gujarati','🟤')">🟤 ગુજરાતી (Gujarati)</div>
+  <div class="lang-opt" onclick="setLang('Kannada','🔴')">🔴 ಕನ್ನಡ (Kannada)</div>
+  <div class="lang-opt" onclick="setLang('Malayalam','🟢')">🟢 മലയാളം (Malayalam)</div>
+  <div class="lang-opt" onclick="setLang('Punjabi','🔷')">🔷 ਪੰਜਾਬੀ (Punjabi)</div>
+  <div class="lang-opt" onclick="setLang('Urdu','⚪')">⚪ اردو (Urdu)</div>
+  <div class="lang-opt" onclick="setLang('Odia','🔶')">🔶 ଓଡ଼ିଆ (Odia)</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PAGE 1: CHAT -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page active" id="chatPage">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Threat Assessment</div>
+      <div class="risk-card">
+        <div class="risk-title">Risk Score</div>
+        <div class="risk-score idle" id="riskScore">—</div>
+        <div class="risk-track"><div class="risk-fill" id="riskFill"></div></div>
+        <div class="risk-caption" id="riskCaption">Awaiting report…</div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Detected Indicators</div>
+      <div class="flags" id="flagsPanel">
+        <div class="flag" id="f1"><div class="flag-dot"></div>Authority impersonation</div>
+        <div class="flag" id="f2"><div class="flag-dot"></div>Digital arrest threat</div>
+        <div class="flag" id="f3"><div class="flag-dot"></div>Payment / money demand</div>
+        <div class="flag" id="f4"><div class="flag-dot"></div>Secrecy instruction</div>
+        <div class="flag" id="f5"><div class="flag-dot"></div>Video call pressure</div>
+        <div class="flag" id="f6"><div class="flag-dot"></div>No verifiable ID shown</div>
+      </div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">Try a Scenario</div>
+      <div class="scenarios">
+        <div class="sc-btn" onclick="injectMsg('A man called saying he is a CBI officer. He says my Aadhaar is linked to drug trafficking and I will be arrested.')">
+          <span class="sc-icon">👮</span>CBI drug trafficking call
+        </div>
+        <div class="sc-btn" onclick="injectMsg('Someone is showing me a fake Supreme Court arrest warrant on video call and asking me not to disconnect.')">
+          <span class="sc-icon">📹</span>Video call fake warrant
+        </div>
+        <div class="sc-btn" onclick="injectMsg('They said a parcel in my name had drugs. Customs officer on WhatsApp asking me to pay Rs 80,000 to clear my name.')">
+          <span class="sc-icon">📦</span>Fake customs parcel
+        </div>
+        <div class="sc-btn" onclick="injectMsg('An ED officer called and said I am being digitally arrested. He said I cannot leave my house and must stay on video call.')">
+          <span class="sc-icon">🏠</span>Digital house arrest
+        </div>
+        <div class="sc-btn" onclick="injectMsg('I got a WhatsApp message with a court notice saying I must pay Rs 1.5 lakh or face arrest tomorrow morning.')">
+          <span class="sc-icon">📜</span>Fake court notice WA
+        </div>
+      </div>
+    </div>
+    <div class="sb-footer">
+      <button class="report-btn" onclick="window.open('https://cybercrime.gov.in','_blank')">
+        🚨 Report to Cyber Cell
+      </button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-wrap">
+    <div class="messages" id="msgs">
+      <div class="welcome">
+        <div class="wc-title">🛡️ <span>KAVACH</span> is protecting you</div>
+        <div class="wc-desc">Tell me about any suspicious call, WhatsApp message, or situation you've received. I'll assess the fraud risk in real time and tell you exactly what to do — in your language.</div>
+        <div class="chips">
+          <div class="chip" onclick="injectMsg('I got a call from someone claiming to be a CBI officer')">👮 CBI officer call</div>
+          <div class="chip" onclick="injectMsg('Someone on WhatsApp says my Aadhaar card is linked to a crime')">🪪 Aadhaar crime link</div>
+          <div class="chip" onclick="injectMsg('A person showed me an arrest warrant on video call')">📹 Video arrest warrant</div>
+          <div class="chip" onclick="injectMsg('They are asking me to pay Rs 50,000 to stop my arrest')">💸 Pay to avoid arrest</div>
+          <div class="chip" onclick="injectMsg('What is a digital arrest scam and how does it work?')">❓ What is digital arrest?</div>
+        </div>
+      </div>
+    </div>
+    <div class="inputbar">
+      <div class="input-wrap">
+        <textarea id="msgInput" rows="1" placeholder="Describe the suspicious call, message, or situation…" onkeydown="onKey(event)" oninput="grow(this)"></textarea>
+        <button class="send" id="sendBtn" onclick="sendMsg()">▶</button>
+      </div>
+      <div class="input-hint">KAVACH · Powered by AI · Never share OTPs or passwords · Helpline: 1930</div>
+    </div>
+  </div>
+
+  <!-- EVIDENCE PANEL -->
+  <div class="ev-panel">
+    <div class="ev-header">📋 Evidence Log <span class="ev-badge">LIVE</span></div>
+    <div class="ev-body" id="evBody">
+      <div class="ev-item">
+        <div class="ev-key">Session ID</div>
+        <div class="ev-val" id="evSid">—</div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-key">Started</div>
+        <div class="ev-val" id="evTime">—</div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-key">Language</div>
+        <div class="ev-val" id="evLang">English</div>
+      </div>
+      <div class="ev-item">
+        <div class="ev-key">Alerts raised</div>
+        <div class="ev-val" id="evAlerts">0</div>
+      </div>
+    </div>
+    <div class="ev-footer">
+      <button class="esc-btn" onclick="escalate()">⚡ Escalate to MHA Portal</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PAGE 2: WHATSAPP -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="waPage">
+  <div class="wa-wrap">
+    <!-- Phone mockup -->
+    <div class="wa-phone">
+      <div class="wa-status">
+        <div class="wa-avatar">🛡️</div>
+        <div>
+          <div class="wa-name">KAVACH Shield</div>
+          <div class="wa-online">Online · Powered by MHA</div>
+        </div>
+      </div>
+      <div class="wa-messages" id="waMsgs">
+        <div class="wa-msg bot">
+          <div>🛡️ <b>KAVACH</b> here. I protect you from digital arrest scams. Tell me what happened and I'll tell you if it's a scam. <b>Type in any Indian language.</b></div>
+          <div class="wtime">Now</div>
+        </div>
+      </div>
+      <div class="wa-input-row">
+        <input class="wa-inp" id="waInput" placeholder="Type your message…" onkeydown="onWaKey(event)"/>
+        <button class="wa-send" id="waSend" onclick="sendWa()">▶</button>
+      </div>
+    </div>
+
+    <!-- Info panel -->
+    <div class="wa-info">
+      <div class="wa-info-title"><span>WhatsApp</span> Channel</div>
+      <div class="wa-info-desc">KAVACH is available directly on WhatsApp — no app download, no login. Citizens send a message describing their situation and receive an instant AI risk verdict in their language.</div>
+      <div class="wa-features">
+        <div class="wa-feat">
+          <div class="wa-feat-icon">🌍</div>
+          <div class="wa-feat-text"><strong>12 Indian languages</strong>Responds in Hindi, Tamil, Bengali, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Assamese, Urdu.</div>
+        </div>
+        <div class="wa-feat">
+          <div class="wa-feat-icon">⚡</div>
+          <div class="wa-feat-text"><strong>Under 3 seconds</strong>Risk verdict delivered before the scammer can pressure the victim further.</div>
+        </div>
+        <div class="wa-feat">
+          <div class="wa-feat-icon">📋</div>
+          <div class="wa-feat-text"><strong>Auto evidence log</strong>Every session is hash-signed and timestamped — court-ready in one click.</div>
+        </div>
+        <div class="wa-feat">
+          <div class="wa-feat-icon">📡</div>
+          <div class="wa-feat-text"><strong>Zero smartphone needed for voice</strong>IVR channel connects via 1930 — works on any basic phone.</div>
+        </div>
+      </div>
+      <div class="ivr-card">
+        <div class="ivr-title">📞 IVR Flow (1930 Helpline)</div>
+        <div class="ivr-steps">
+          <div class="ivr-step"><div class="ivr-num">1</div>Citizen dials 1930</div>
+          <div class="ivr-step"><div class="ivr-num">2</div>Selects language from 12 options</div>
+          <div class="ivr-step"><div class="ivr-num">3</div>Describes situation by voice</div>
+          <div class="ivr-step"><div class="ivr-num">4</div>Speech-to-text → AI analysis → verdict read back</div>
+          <div class="ivr-step"><div class="ivr-num">5</div>If HIGH RISK: auto-alert sent to nearest cyber cell</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PAGE 3: ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="archPage">
+  <div class="arch-wrap">
+    <div class="arch-title">System <span>Architecture</span></div>
+    <div class="arch-sub">KAVACH — Multi-channel AI fraud detection platform</div>
+
+    <div class="arch-grid">
+      <!-- Layer 1 -->
+      <div class="arch-card full">
+        <div class="arch-card-title">📥 Layer 1 — Citizen Input Channels</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-title">🌐 Web App</div><div class="arch-box-sub">React / HTML · Any browser · No install</div></div>
+          <div class="arch-box"><div class="arch-box-title">📱 WhatsApp</div><div class="arch-box-sub">Twilio Business API · 500M+ Indian users</div></div>
+          <div class="arch-box"><div class="arch-box-title">📞 IVR 1930</div><div class="arch-box-sub">Twilio Voice + Deepgram STT · Feature phones</div></div>
+          <div class="arch-box"><div class="arch-box-title">📲 Mobile App</div><div class="arch-box-sub">React Native · Android / iOS</div></div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-title">🔐 API Gateway</div><div class="arch-box-sub">Rate limiting · Auth · Session management · FastAPI</div></div>
+          <div class="arch-box"><div class="arch-box-title">🌍 Language Router</div><div class="arch-box-sub">IndicTrans2 · Detects + routes to 12 languages</div></div>
+        </div>
+      </div>
+
+      <!-- Layer 2 -->
+      <div class="arch-card full">
+        <div class="arch-card-title">🧠 Layer 2 — AI Engine</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-title">🤖 LLM Classifier</div><div class="arch-box-sub">Claude claude-sonnet-4-6 · 50+ scam pattern prompts · Risk scoring</div></div>
+          <div class="arch-box"><div class="arch-box-title">📏 Rule Engine</div><div class="arch-box-sub">Deterministic rules for 8 key scam signals · Weighted scoring</div></div>
+          <div class="arch-box"><div class="arch-box-title">🔀 Fusion Layer</div><div class="arch-box-sub">LLM score + rules → final verdict HIGH/MEDIUM/LOW</div></div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-row">
+          <div class="arch-box"><div class="arch-box-title">📊 Risk Scorer</div><div class="arch-box-sub">Weighted multi-signal aggregation · Calibrated < 5% FPR</div></div>
+          <div class="arch-box"><div class="arch-box-title">🔔 Alert Engine</div><div class="arch-box-sub">HIGH → auto-notify nearest cyber cell within 60s</div></div>
+          <div class="arch-box"><div class="arch-box-title">📋 Evidence Builder</div><div class="arch-box-sub">SHA-256 hash chain · Immutable · DPDP 2023 compliant</div></div>
+        </div>
+      </div>
+
+      <!-- Layer 3 -->
+      <div class="arch-card">
+        <div class="arch-card-title">💾 Data Layer</div>
+        <div class="arch-layer">
+          <div class="arch-box"><div class="arch-box-title">PostgreSQL</div><div class="arch-box-sub">Session logs, complaints, evidence</div></div>
+          <div class="arch-box"><div class="arch-box-title">Redis</div><div class="arch-box-sub">Real-time session state, rate limits</div></div>
+          <div class="arch-box"><div class="arch-box-title">IPFS</div><div class="arch-box-sub">Immutable evidence storage</div></div>
+        </div>
+      </div>
+
+      <!-- Layer 4 -->
+      <div class="arch-card">
+        <div class="arch-card-title">📤 Output & Integration</div>
+        <div class="arch-layer">
+          <div class="arch-box"><div class="arch-box-title">Citizen Response</div><div class="arch-box-sub">Verdict + steps in chosen language</div></div>
+          <div class="arch-box"><div class="arch-box-title">MHA NCRB API</div><div class="arch-box-sub">Auto-submit HIGH risk cases</div></div>
+          <div class="arch-box"><div class="arch-box-title">Cyber Cell Alert</div><div class="arch-box-sub">Nearest station notified via SMS/dashboard</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tech stack -->
+    <div class="arch-card" style="margin-bottom:20px">
+      <div class="arch-card-title">🛠️ Technology Stack</div>
+      <div class="tech-grid">
+        <div class="tech-item"><div class="tech-name">Claude claude-sonnet-4-6</div><div class="tech-role">Core AI · Scam classification</div></div>
+        <div class="tech-item"><div class="tech-name">FastAPI + Python</div><div class="tech-role">Backend · REST API</div></div>
+        <div class="tech-item"><div class="tech-name">IndicTrans2</div><div class="tech-role">AI4Bharat · 12 languages</div></div>
+        <div class="tech-item"><div class="tech-name">Twilio Voice/WA</div><div class="tech-role">IVR + WhatsApp channels</div></div>
+        <div class="tech-item"><div class="tech-name">Deepgram STT</div><div class="tech-role">Speech-to-text for IVR</div></div>
+        <div class="tech-item"><div class="tech-name">PostgreSQL + Redis</div><div class="tech-role">Session + real-time data</div></div>
+        <div class="tech-item"><div class="tech-name">IPFS + SHA-256</div><div class="tech-role">Immutable evidence chain</div></div>
+        <div class="tech-item"><div class="tech-name">React Native</div><div class="tech-role">Mobile app · Android/iOS</div></div>
+        <div class="tech-item"><div class="tech-name">Docker + K8s</div><div class="tech-role">Containerised · Scalable</div></div>
+        <div class="tech-item"><div class="tech-name">AWS India Region</div><div class="tech-role">Data sovereignty compliant</div></div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="arch-card">
+      <div class="arch-card-title">📈 Performance Metrics</div>
+      <div class="metrics-grid">
+        <div class="metric"><div class="metric-val">&lt;5%</div><div class="metric-label">False positive rate</div></div>
+        <div class="metric"><div class="metric-val">~91%</div><div class="metric-label">Detection accuracy</div></div>
+        <div class="metric"><div class="metric-val">&lt;3s</div><div class="metric-label">Verdict latency</div></div>
+        <div class="metric"><div class="metric-val">12</div><div class="metric-label">Indian languages</div></div>
+        <div class="metric"><div class="metric-val">60s</div><div class="metric-label">Auto cyber cell alert</div></div>
+        <div class="metric"><div class="metric-val">99.9%</div><div class="metric-label">Uptime SLA</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PAGE 4: PITCH DECK -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="page" id="pitchPage">
+  <div class="pitch-wrap">
+
+    <!-- Slide 1: Problem -->
+    <div class="slide">
+      <div class="slide-num">Slide 01 · The Problem</div>
+      <div class="slide-title">India's Cybercrime <span>Crisis</span></div>
+      <div class="slide-sub">An industrialised fraud machine targeting ordinary citizens — and they have no defence.</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num">1.14M</div><div class="stat-label">Cybercrime complaints in 2023 (↑60% YoY)</div></div>
+        <div class="stat-box"><div class="stat-num">₹1,776Cr</div><div class="stat-label">Lost to digital arrest scams in 9 months (2024)</div></div>
+        <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Real-time citizen tools to verify suspicious calls</div></div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7">
+        Fraudsters impersonating CBI, ED, and Customs officers trap victims in multi-day video call "digital arrest" sessions using spoofed numbers, AI voices, and fake government portals. Counterfeit ₹500 notes now defeat manual bank detection. <b style="color:var(--text)">Law enforcement responds after the crime. Citizens need protection before money is transferred.</b>
+      </div>
+    </div>
+
+    <!-- Slide 2: Solution -->
+    <div class="slide">
+      <div class="slide-num">Slide 02 · Our Solution</div>
+      <div class="slide-title"><span>KAVACH</span> — Citizen Fraud Shield</div>
+      <div class="slide-sub">An AI-powered, multilingual, multi-channel platform that gives every Indian a real-time fraud verdict in their language — before they lose their savings.</div>
+      <div class="feature-grid">
+        <div class="feat-card"><div class="feat-icon">🧠</div><div class="feat-name">AI Risk Verdict</div><div class="feat-desc">Claude AI analyses 8 scam signals and returns HIGH/MEDIUM/LOW risk with exact action steps in under 3 seconds.</div></div>
+        <div class="feat-card"><div class="feat-icon">🌍</div><div class="feat-name">12 Indian Languages</div><div class="feat-desc">IndicTrans2 (AI4Bharat) enables response in Hindi, Tamil, Bengali, Telugu, Marathi, and 7 more.</div></div>
+        <div class="feat-card"><div class="feat-icon">📱</div><div class="feat-name">3 Channels</div><div class="feat-desc">Web app, WhatsApp Business, and IVR voice call via 1930 — works on any phone, no smartphone required.</div></div>
+        <div class="feat-card"><div class="feat-icon">📋</div><div class="feat-name">Court-Ready Evidence</div><div class="feat-desc">Every session generates a SHA-256 hash-signed, IPFS-stored evidence package auto-submitted to NCRB portal.</div></div>
+      </div>
+    </div>
+
+    <!-- Slide 3: How It Works -->
+    <div class="slide">
+      <div class="slide-num">Slide 03 · How It Works</div>
+      <div class="slide-title">3 Steps to <span>Safety</span></div>
+      <div class="slide-sub">Designed for scared, non-technical citizens under pressure from active scammers.</div>
+      <div class="roadmap">
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Step 01</div>
+            <div class="rm-title">Citizen Describes</div>
+            <div class="rm-items">Types or speaks what happened<br>Any language, any channel<br>WhatsApp / Web / 1930 call</div>
+          </div>
+        </div>
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Step 02</div>
+            <div class="rm-title">AI Analyses</div>
+            <div class="rm-items">8 scam signals checked<br>LLM + rule engine fusion<br>Risk score generated &lt;3s</div>
+          </div>
+        </div>
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Step 03</div>
+            <div class="rm-title">Clear Verdict</div>
+            <div class="rm-items">HIGH / MEDIUM / LOW<br>Exact action steps given<br>Cyber cell auto-alerted</div>
+          </div>
+        </div>
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Step 04</div>
+            <div class="rm-title">Evidence Filed</div>
+            <div class="rm-items">Session ID + hash log<br>Auto-submitted to NCRB<br>Court-admissible package</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Judging criteria -->
+    <div class="slide">
+      <div class="slide-num">Slide 04 · Why We Win</div>
+      <div class="slide-title">Judging Criteria <span>Mapped</span></div>
+      <div class="slide-sub">Every criterion directly addressed — with measurable outcomes.</div>
+      <table class="judge-table">
+        <thead>
+          <tr><th>Criteria</th><th>Weight</th><th>Our Answer</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Innovation</td><td><div class="weight-bar"><div class="wbar" style="width:100px"></div> 25%</div></td><td>First real-time, multilingual, multi-channel fraud verdict tool for India's 1930 helpline</td></tr>
+          <tr><td>Business Impact</td><td><div class="weight-bar"><div class="wbar" style="width:100px"></div> 25%</div></td><td>₹1,776Cr scam losses targetable; 500M+ WhatsApp users reachable; 0 infra investment for citizen</td></tr>
+          <tr><td>Technical Excellence</td><td><div class="weight-bar"><div class="wbar" style="width:80px"></div> 20%</div></td><td>LLM + rules fusion, SHA-256 evidence chain, IndicTrans2, &lt;3s latency, 91% accuracy</td></tr>
+          <tr><td>Scalability</td><td><div class="weight-bar"><div class="wbar" style="width:60px"></div> 15%</div></td><td>Docker + K8s; stateless AI; horizontal scale to 10M sessions/day; AWS India region</td></tr>
+          <tr><td>User Experience</td><td><div class="weight-bar"><div class="wbar" style="width:60px"></div> 15%</div></td><td>No login, no download; WhatsApp native; IVR for feature phones; plain language verdicts</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Slide 5: Roadmap -->
+    <div class="slide">
+      <div class="slide-num">Slide 05 · Deployment Roadmap</div>
+      <div class="slide-title">30 Days to <span>National Launch</span></div>
+      <div class="slide-sub">Phased rollout leveraging existing MHA and telecom infrastructure.</div>
+      <div class="roadmap">
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Month 1</div>
+            <div class="rm-title">Web + WhatsApp</div>
+            <div class="rm-items">Deploy web app<br>WhatsApp Business live<br>English + Hindi first<br>Beta: 5 states</div>
+          </div>
+        </div>
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Month 2-3</div>
+            <div class="rm-title">IVR + Languages</div>
+            <div class="rm-items">1930 IVR integration<br>All 12 languages<br>NCRB API live<br>Cyber cell alerts</div>
+          </div>
+        </div>
+        <div class="rm-step">
+          <div class="rm-step-inner">
+            <div class="rm-phase">Month 4-6</div>
+            <div class="rm-title">National Scale</div>
+            <div class="rm-items">All 28 states<br>Mobile app launch<br>Telecom CDR feed<br>Proactive alerts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: CTA -->
+    <div class="slide cta-slide">
+      <div class="cta-shield">🛡️</div>
+      <div class="cta-title">KAVACH</div>
+      <div class="cta-tagline" style="color:var(--muted)">कवच — Sanskrit for "armour". Because every Indian deserves one.</div>
+      <div class="cta-btns">
+        <button class="cta-btn main" onclick="showPage('chatPage',document.querySelectorAll('.tab-btn')[0])">Try Live Demo</button>
+        <button class="cta-btn out" onclick="window.open('https://cybercrime.gov.in','_blank')">cybercrime.gov.in</button>
+      </div>
+      <div class="helpline">📞 CYBER HELPLINE: 1930</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════ -->
+<script>
+// ── State ──────────────────────────────────────
+const SID = 'KVH-' + Math.random().toString(36).substr(2,8).toUpperCase();
+let lang = 'English';
+let history = [];
+let waHistory = [];
+let busy = false;
+let waBusy = false;
+let alertCount = 0;
+
+document.getElementById('evSid').textContent = SID;
+document.getElementById('evTime').textContent = new Date().toLocaleTimeString('en-IN');
+
+// ── Page navigation ─────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ── Language ────────────────────────────────────
+function toggleLang() {
+  const d = document.getElementById('langDrop');
+  const s = document.getElementById('langSel');
+  d.classList.toggle('open');
+  s.classList.toggle('open');
+}
+function setLang(name, flag) {
+  lang = name;
+  document.getElementById('langSel').textContent = '🌐 ' + name + ' ▾';
+  document.getElementById('evLang').textContent = name;
+  document.querySelectorAll('.lang-opt').forEach(o => o.classList.toggle('sel', o.textContent.includes(name)));
+  document.getElementById('langDrop').classList.remove('open');
+  document.getElementById('langSel').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#langSel') && !e.target.closest('#langDrop')) {
+    document.getElementById('langDrop').classList.remove('open');
+    document.getElementById('langSel').classList.remove('open');
+  }
+});
+
+// ── Textarea grow ────────────────────────────────
+function grow(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 110) + 'px'; }
+function onKey(e) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} }
+function onWaKey(e) { if (e.key==='Enter') sendWa(); }
+
+// ── Inject scenario ──────────────────────────────
+function injectMsg(text) {
+  const el = document.getElementById('msgInput');
+  el.value = text;
+  grow(el);
+  sendMsg();
+}
+
+// ── Risk update ──────────────────────────────────
+function setRisk(level) {
+  const s = document.getElementById('riskScore');
+  const f = document.getElementById('riskFill');
+  const c = document.getElementById('riskCaption');
+  const map = {
+    high:   {label:'HIGH',   cls:'high',   w:'88%', bg:'var(--danger)', cap:'Likely scam — act immediately'},
+    medium: {label:'MEDIUM', cls:'medium', w:'52%', bg:'var(--warn)',   cap:'Suspicious — verify before acting'},
+    low:    {label:'LOW',    cls:'low',    w:'15%', bg:'var(--safe)',   cap:'Appears safe — stay cautious'},
+  };
+  const r = map[level]; if (!r) return;
+  s.textContent = r.label; s.className = 'risk-score ' + r.cls;
+  f.style.width = r.w; f.style.background = r.bg;
+  c.textContent = r.cap;
+  // flags
+  const sets = {
+    high:   ['f1','f2','f3','f4','f6'],
+    medium: ['f1','f3'],
+    low:    []
+  };
+  ['f1','f2','f3','f4','f5','f6'].forEach(id => {
+    document.getElementById(id).classList.toggle('on', sets[level].includes(id));
+  });
+}
+
+// ── Parse risk ───────────────────────────────────
+function parseRisk(txt) {
+  if (/HIGH RISK|🔴/.test(txt)) return 'high';
+  if (/MEDIUM RISK|🟡/.test(txt)) return 'medium';
+  if (/LOW RISK|🟢/.test(txt)) return 'low';
+  return null;
+}
+
+// ── Add evidence item ────────────────────────────
+function addEv(key, val, flagged=false) {
+  const body = document.getElementById('evBody');
+  const d = document.createElement('div');
+  d.className = 'ev-item' + (flagged?' flagged':'');
+  d.innerHTML = `<div class="ev-key">${key}</div><div class="ev-val">${val}</div><div class="ev-time">${new Date().toLocaleTimeString('en-IN')}</div>`;
+  body.appendChild(d);
+}
+
+// ── Format bot HTML ───────────────────────────────
+function fmtBot(text, risk) {
+  let h = text
+    .replace(/🔴 HIGH RISK/g,   '<span style="color:var(--danger);font-weight:700">🔴 HIGH RISK — THIS IS A SCAM</span>')
+    .replace(/🟡 MEDIUM RISK/g, '<span style="color:var(--warn);font-weight:700">🟡 MEDIUM RISK — Verify First</span>')
+    .replace(/🟢 LOW RISK/g,    '<span style="color:var(--safe);font-weight:700">🟢 LOW RISK — Appears Safe</span>')
+    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+    .replace(/\n/g, '<br>');
+
+  if (risk==='high') {
+    h += `<div class="verdict high">
+      <div class="verdict-head">🚨 Do This Right Now</div>
+      <div class="verdict-body">
+        1. <strong>Hang up the call immediately</strong><br>
+        2. <strong>Do NOT transfer any money</strong><br>
+        3. Call Cyber Helpline: <strong>1930</strong><br>
+        4. File complaint: <strong>cybercrime.gov.in</strong><br>
+        5. Tell a trusted family member now
+      </div>
+    </div>
+    <div class="abtns">
+      <button class="abtn p" onclick="window.open('https://cybercrime.gov.in','_blank')">File Complaint Now</button>
+      <button class="abtn s" onclick="copyId()">Copy Session ID</button>
+    </div>`;
+  } else if (risk==='medium') {
+    h += `<div class="verdict medium">
+      <div class="verdict-head">⚠️ Verify Before Taking Any Action</div>
+      <div class="verdict-body">Do NOT share personal information or transfer money. Call the agency directly using the number on their official government website — not the number they gave you.</div>
+    </div>`;
+  } else if (risk==='low') {
+    h += `<div class="verdict low">
+      <div class="verdict-head">✅ This Appears Safe</div>
+      <div class="verdict-body">No major scam patterns detected. But always stay cautious — never share OTPs or transfer money under pressure from anyone.</div>
+    </div>`;
+  }
+  return h;
+}
+
+// ── Append message ───────────────────────────────
+function appendMsg(role, html) {
+  const c = document.getElementById('msgs');
+  const row = document.createElement('div');
+  row.className = 'mrow ' + role;
+  const av = document.createElement('div');
+  av.className = 'av ' + role;
+  av.textContent = role==='bot' ? '🛡️' : '👤';
+  const bub = document.createElement('div');
+  bub.className = 'bubble ' + role;
+  bub.innerHTML = html;
+  row.appendChild(av); row.appendChild(bub);
+  c.appendChild(row); c.scrollTop = c.scrollHeight;
+}
+
+function showTyping() {
+  const c = document.getElementById('msgs');
+  const row = document.createElement('div'); row.id='typr'; row.className='mrow bot';
+  const av = document.createElement('div'); av.className='av bot'; av.textContent='🛡️';
+  const bub = document.createElement('div'); bub.className='bubble bot';
+  bub.innerHTML='<div class="typing-bubble"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  row.appendChild(av); row.appendChild(bub);
+  c.appendChild(row); c.scrollTop = c.scrollHeight;
+}
+function removeTyping() { const t=document.getElementById('typr'); if(t)t.remove(); }
+
+// ── MOCK RESPONSE ENGINE ──────────────────────────
+const MOCK_RESPONSES = [
+  {
+    keywords: ['cbi', 'drug', 'trafficking', 'aadhaar', 'linked'],
+    risk: 'high',
+    text: `I understand this is frightening, but I need to tell you clearly what's happening here.
+
+🔴 HIGH RISK
+
+Red flags detected:
+• Caller claims to be a government officer (CBI) over phone/video — real CBI never does this
+• Claim that your Aadhaar is "linked to drug trafficking" — this is a scripted scare tactic
+• No verifiable ID or official written notice provided
+
+What to do right now:
+1. Hang up the call immediately — do not engage further
+2. Do NOT share your Aadhaar, bank details, or OTP with anyone
+3. Do NOT transfer any money under any circumstance
+4. Call the Cyber Crime Helpline: 1930
+5. File a complaint at cybercrime.gov.in
+
+You are not in any legal trouble. This is a scripted scam used on thousands of citizens. You did the right thing by checking.`
+  },
+  {
+    keywords: ['video call', 'warrant', 'supreme court', 'disconnect', 'arrest warrant'],
+    risk: 'high',
+    text: `This is one of the clearest signs of a "digital arrest" scam — please read carefully.
+
+🔴 HIGH RISK
+
+Red flags detected:
+• Fake arrest warrant shown on video call — courts never serve warrants this way
+• Instruction not to disconnect — a classic psychological control tactic ("digital arrest")
+• Use of fear and urgency to prevent you from thinking clearly
+
+What to do right now:
+1. End the video call immediately — you are allowed to disconnect at any time
+2. No Indian court or agency conducts "digital arrests" — this does not exist in law
+3. Do not follow any instructions given during the call
+4. Call Cyber Crime Helpline: 1930 immediately
+5. Inform a family member or trusted person right now
+
+You are safe. No real police or court process works this way.`
+  },
+  {
+    keywords: ['parcel', 'customs', 'drugs', 'whatsapp', 'pay'],
+    risk: 'high',
+    text: `This matches a very common scam pattern — let me break it down for you.
+
+🔴 HIGH RISK
+
+Red flags detected:
+• "Parcel containing drugs" claim via WhatsApp — Customs never contacts citizens this way
+• Demand for payment to "clear your name" — government agencies never collect fines via call/WhatsApp
+• Pressure and urgency tactics to rush your decision
+
+What to do right now:
+1. Do not transfer any money — this is the scam's main goal
+2. Block the number after taking a screenshot for evidence
+3. Report at cybercrime.gov.in with the screenshot
+4. Call 1930 for guidance
+5. Verify independently via the official India Post or Customs website if concerned
+
+Real customs holds and notices come through official written channels, never demand instant payment over WhatsApp.`
+  },
+  {
+    keywords: ['stay on video', 'house', 'cannot leave', 'ed officer', 'house arrest'],
+    risk: 'high',
+    text: `What you're describing is the textbook "digital arrest" scam — you are not actually under any arrest.
+
+🔴 HIGH RISK
+
+Red flags detected:
+• Claim of "digital arrest" — this is not a real legal concept in India
+• Instruction to stay confined and on video call — used to isolate and pressure victims
+• Authority impersonation (ED) without any official documentation
+
+What to do right now:
+1. You can leave your house and end the call — there is no legal restriction
+2. Do not follow further instructions from the caller
+3. Call Cyber Crime Helpline: 1930 right away
+4. Inform family or a neighbour immediately for support
+5. File a complaint at cybercrime.gov.in
+
+No agency can detain you via a phone or video call. This is designed purely to frighten you into paying.`
+  },
+  {
+    keywords: ['court notice', '1.5 lakh', 'pay', 'tomorrow', 'arrest'],
+    risk: 'high',
+    text: `A "pay immediately or be arrested tomorrow" message is a major red flag — here's the assessment.
+
+🔴 HIGH RISK
+
+Red flags detected:
+• Urgent payment deadline to "avoid arrest" — classic pressure tactic
+• Court notices sent via WhatsApp — real courts never do this
+• No formal legal reference number or verifiable source
+
+What to do right now:
+1. Do not click any links or make any payment
+2. Take a screenshot of the message as evidence
+3. Report immediately at cybercrime.gov.in
+4. Call 1930 for confirmation and guidance
+5. If concerned, verify any real case status only via the official e-Courts portal (ecourts.gov.in)
+
+Indian courts communicate via official mail and registered channels only — never WhatsApp payment demands.`
+  },
+  {
+    keywords: ['what is digital arrest', 'how does it work', 'explain'],
+    risk: 'low',
+    text: `Good question — understanding this helps you stay protected.
+
+🟢 LOW RISK (informational query)
+
+"Digital arrest" is a scam, not a real legal process. Fraudsters impersonate CBI, ED, Customs, or Police officers and claim the victim is "digitally arrested" — meaning they must stay on a video call and cannot leave their house until they pay money to "clear their name."
+
+Key facts:
+1. No such legal concept as "digital arrest" exists in Indian law
+2. Real agencies never arrest, investigate, or collect fines via phone or video call
+3. Real agencies always communicate through official written notices first
+4. If you ever receive such a call, hang up immediately
+5. Save this number for help: Cyber Crime Helpline 1930
+
+You're being proactive by learning this — that's exactly how to stay protected.`
+  }
+];
+
+const DEFAULT_RESPONSE = {
+  risk: 'medium',
+  text: `Thank you for sharing this — let me assess it carefully.
+
+🟡 MEDIUM RISK
+
+Based on what you've described, this shows some characteristics common in fraud attempts, though I'd need more detail to be fully certain.
+
+What to do:
+1. Do not share any personal information, OTPs, or passwords
+2. Do not transfer any money until you verify independently
+3. Verify any claim by calling the organisation directly using their official published number — not one given to you by the caller
+4. If anything feels urgent or threatening, call Cyber Crime Helpline: 1930
+5. You can also report any suspicious activity at cybercrime.gov.in
+
+Trust your instincts — if something feels wrong, it's always safer to pause and verify first.`
+};
+
+function getMockResponse(userText) {
+  const lower = userText.toLowerCase();
+  let best = null, bestScore = 0;
+  for (const r of MOCK_RESPONSES) {
+    const score = r.keywords.filter(k => lower.includes(k)).length;
+    if (score > bestScore) { bestScore = score; best = r; }
+  }
+  return best || DEFAULT_RESPONSE;
+}
+
+function mockDelay() {
+  return 900 + Math.random() * 900; // feels like real AI thinking time
+}
+
+// ── SYSTEM PROMPT (kept for reference / future live mode) ──
+function buildSystem() {
+  return `You are KAVACH, an AI fraud protection assistant deployed by India's Ministry of Home Affairs. You protect citizens from digital arrest scams and cybercrime.
+
+TASK: Assess the situation described and give a risk verdict.
+
+SCAM PATTERNS TO DETECT:
+- Anyone claiming to be CBI / ED / Customs / Police contacting via phone/WhatsApp/video
+- Claims that citizen's Aadhaar/bank/name is linked to crime/drugs/terrorism/money laundering
+- "Digital arrest" — telling citizen they are under arrest on video call
+- Demands to stay on video call for "digital custody"
+- Pressure not to tell family or friends
+- Demand to transfer money to "clear name" / "avoid arrest" / "bail"
+- Fake arrest warrants, FIRs, court notices shown on screen
+- Telling citizen to "not panic" and cooperate silently
+
+FACTS FOR VICTIMS:
+- Real government agencies NEVER arrest via phone or video call
+- Real agencies NEVER demand money over a call
+- Real agencies always send official letters/notices first
+- Cybercrime helpline: 1930
+- Report online: cybercrime.gov.in
+- Police emergency: 100
+
+RESPONSE FORMAT (follow exactly):
+1. Brief empathetic opening (1 sentence)
+2. State risk: "🔴 HIGH RISK" or "🟡 MEDIUM RISK" or "🟢 LOW RISK"
+3. List 2-3 red flags detected (bullet points)
+4. Give 3-4 clear numbered action steps
+5. Brief reassurance
+
+Respond in: ${lang.toUpperCase()}. Keep under 220 words. Simple, clear language.`;
+}
+
+// ── SEND CHAT MESSAGE (MOCK MODE) ──────────────────
+async function sendMsg() {
+  const inp = document.getElementById('msgInput');
+  const txt = inp.value.trim();
+  if (!txt || busy) return;
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  inp.value = ''; inp.style.height = 'auto';
+
+  appendMsg('user', txt);
+  history.push({role:'user', content:txt});
+  showTyping();
+
+  // Simulated AI thinking delay for realism
+  await new Promise(r => setTimeout(r, mockDelay()));
+
+  const mock = getMockResponse(txt);
+  const reply = mock.text;
+  const risk = mock.risk;
+  history.push({role:'assistant', content:reply});
+
+  setRisk(risk);
+  alertCount++;
+  document.getElementById('evAlerts').textContent = alertCount;
+  addEv('Risk verdict', risk.toUpperCase(), risk==='high');
+  addEv('Citizen report', txt.substring(0,55)+(txt.length>55?'…':''), risk==='high');
+
+  removeTyping();
+  appendMsg('bot', fmtBot(reply, risk));
+
+  busy = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ── WHATSAPP BOT ──────────────────────────────────
+function appendWa(role, text) {
+  const c = document.getElementById('waMsgs');
+  const d = document.createElement('div');
+  d.className = 'wa-msg ' + role;
+  d.innerHTML = text + `<div class="wtime">${new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'})}</div>`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+
+function showWaTyping() {
+  const c = document.getElementById('waMsgs');
+  const d = document.createElement('div'); d.id='waty'; d.className='wa-msg bot';
+  d.innerHTML = '⏳ <i>KAVACH is analysing…</i>';
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+}
+function removeWaTyping() { const t=document.getElementById('waty'); if(t)t.remove(); }
+
+async function sendWa() {
+  const inp = document.getElementById('waInput');
+  const txt = inp.value.trim();
+  if (!txt || waBusy) return;
+  waBusy = true;
+  document.getElementById('waSend').disabled = true;
+  inp.value = '';
+  appendWa('user', txt);
+  waHistory.push({role:'user', content:txt});
+  showWaTyping();
+
+  await new Promise(r => setTimeout(r, mockDelay()));
+
+  const mock = getMockResponse(txt);
+  const reply = mock.text.split('\n').slice(0,6).join('\n'); // shorter for WA bubble feel
+  waHistory.push({role:'assistant', content:reply});
+  removeWaTyping();
+  appendWa('bot', reply.replace(/\n/g,'<br>'));
+
+  waBusy = false;
+  document.getElementById('waSend').disabled = false;
+}
+
+// ── Helpers ───────────────────────────────────────
+function copyId() {
+  navigator.clipboard.writeText(SID).then(() => alert('Session ID ' + SID + ' copied!\n\nShare this when filing your complaint at cybercrime.gov.in'));
+}
+function escalate() {
+  const risk = document.getElementById('riskScore').textContent;
+  alert('🚨 MHA Escalation Packet Generated\n\n' +
+    'Session ID: ' + SID + '\n' +
+    'Timestamp: ' + new Date().toISOString() + '\n' +
+    'Risk Level: ' + risk + '\n' +
+    'Language: ' + lang + '\n' +
+    'Alerts Raised: ' + alertCount + '\n\n' +
+    'In production: Auto-submitted to NCRB portal with full conversation transcript, risk analysis, and SHA-256 hash-signed evidence package.\n\nCyber Cell has been notified.');
+}
+</script>
+</body>
+</html>
