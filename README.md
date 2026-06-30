@@ -164,18 +164,7 @@ It includes **4 interactive sections** in one app:
 
 ---
 
-## 📁 Project Structure
 
-```
-kavach/
-├── KAVACH_App.html       ← Main application (open this to run)
-├── README.md              ← This file
-├── DEMO_SCRIPT.md         ← 3-minute demo video script
-├── JUDGING_NOTES.md       ← Detailed criteria-by-criteria mapping
-└── SETUP.md               ← Step-by-step run instructions
-```
-
----
 
 ## 🚀 Setup & Installation
 
