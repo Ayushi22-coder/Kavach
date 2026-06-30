@@ -180,42 +180,6 @@ Full details in [`SETUP.md`](./SETUP.md).
 
 ---
 
-## 📊 Evaluation Metrics
-
-| Metric | Target / Design Value | How Achieved |
-|---|---|---|
-| Detection accuracy | ~91% | LLM + rule engine fusion |
-| False positive rate | < 5% | Conservative thresholding — 3+ signals required for HIGH |
-| Verdict latency | < 3 seconds | Lightweight model + minimal processing overhead |
-| Languages supported | 12 | IndicTrans2 (AI4Bharat) |
-| Auto cyber-cell alert | 60 seconds | MHA webhook triggered on HIGH verdict |
-| Evidence auditability | Full | SHA-256 hash chain + IPFS + unique session ID |
-
----
-
-## 🏆 Judging Criteria Mapping
-
-| Criteria | Weight | How We Address It |
-|---|---|---|
-| **Innovation** | 25% | First real-time, multilingual, multi-channel proactive fraud-verdict tool designed for India's 1930 ecosystem — shifts from reactive to predictive |
-| **Business Impact** | 25% | ₹1,776 crore in addressable scam losses; 500M+ WhatsApp users reachable instantly; zero infrastructure cost to citizens |
-| **Technical Excellence** | 20% | LLM + rule-engine fusion, SHA-256 evidence chain, IndicTrans2 multilingual support, sub-3-second latency |
-| **Scalability** | 15% | Stateless AI layer, Kubernetes horizontal scaling, Claude API auto-scale, multi-region AWS design |
-| **User Experience** | 15% | No login, no download, WhatsApp-native, IVR fallback for feature phones, plain-language verdicts |
-
-Full breakdown in [`JUDGING_NOTES.md`](./JUDGING_NOTES.md).
-
----
-
-## 🗺️ Roadmap
-
-| Phase | Timeline | Milestones |
-|---|---|---|
-| Phase 1 | Month 1 | Web + WhatsApp launch, English + Hindi, 5-state beta |
-| Phase 2 | Month 2–3 | IVR (1930) integration, all 12 languages live, NCRB API integration |
-| Phase 3 | Month 4–6 | National rollout across 28 states, mobile app launch, telecom CDR feed integration |
-
----
 
 ## ⚖️ Legal & Compliance
 
